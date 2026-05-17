@@ -1,0 +1,116 @@
+{
+  "techniques": [
+    {
+      "technique_id": "T0802",
+      "name": "Automated Collection",
+      "tactic": "Collection",
+      "description": "Adversaries may automate collection of industrial environment data using scripts or built-in tools. This data may include operational information, device configurations, or proprietary protocols.",
+      "url": "https://attack.mitre.org/techniques/T0802/"
+    },
+    {
+      "technique_id": "T0830",
+      "name": "Man in the Middle",
+      "tactic": "Collection",
+      "description": "Adversaries may attempt to position themselves between two or more networked devices to support follow-on behaviors such as Adversary-in-the-Middle or Manipulation of View.",
+      "url": "https://attack.mitre.org/techniques/T0830/"
+    },
+    {
+      "technique_id": "T0831",
+      "name": "Manipulation of Control",
+      "tactic": "Impact",
+      "description": "Adversaries may manipulate physical process control within the industrial environment to cause a negative impact. Methods of manipulation include changes to set points, tags, or other parameters.",
+      "url": "https://attack.mitre.org/techniques/T0831/"
+    },
+    {
+      "technique_id": "T0836",
+      "name": "Modify Parameter",
+      "tactic": "Impair Process Control",
+      "description": "Adversaries may modify parameters of devices in the industrial environment to introduce faults or achieve a desired process state. Parameters include settings on sensors, actuators, and PLCs.",
+      "url": "https://attack.mitre.org/techniques/T0836/"
+    },
+    {
+      "technique_id": "T0843",
+      "name": "Program Download",
+      "tactic": "Lateral Movement",
+      "description": "Adversaries may download programs to devices in the ICS environment to change device behavior or enable further compromise.",
+      "url": "https://attack.mitre.org/techniques/T0843/"
+    },
+    {
+      "technique_id": "T0855",
+      "name": "Unauthorized Command Message",
+      "tactic": "Impair Process Control",
+      "description": "Adversaries may send unauthorized command messages to instruct control system assets to perform actions outside of their intended functionality. Commands can be used to change set points, manipulate process data, or disable safety functions.",
+      "url": "https://attack.mitre.org/techniques/T0855/"
+    },
+    {
+      "technique_id": "T0856",
+      "name": "Spoof Reporting Message",
+      "tactic": "Evasion",
+      "description": "Adversaries may spoof reporting messages in control system environments to achieve desired effects. Spoofed messages may manipulate reporting data to hide attacks or manipulate operator displays.",
+      "url": "https://attack.mitre.org/techniques/T0856/"
+    },
+    {
+      "technique_id": "T0861",
+      "name": "Point & Tag Identification",
+      "tactic": "Discovery",
+      "description": "Adversaries may collect point and tag values to gain knowledge about the layout and operation of the process environment. Tags identify specific data points within the control system.",
+      "url": "https://attack.mitre.org/techniques/T0861/"
+    },
+    {
+      "technique_id": "T0879",
+      "name": "Damage to Property",
+      "tactic": "Impact",
+      "description": "Adversaries may cause damage to physical property or equipment within the industrial environment through manipulation of control system processes.",
+      "url": "https://attack.mitre.org/techniques/T0879/"
+    },
+    {
+      "technique_id": "T0880",
+      "name": "Loss of Safety",
+      "tactic": "Impact",
+      "description": "Adversaries may compromise safety system functions to prevent them from operating as designed. This could lead to unsafe conditions in the physical environment.",
+      "url": "https://attack.mitre.org/techniques/T0880/"
+    },
+    {
+      "technique_id": "T0826",
+      "name": "Loss of Availability",
+      "tactic": "Impact",
+      "description": "Adversaries may cause loss of availability by disrupting the communication between control system components or between the control system and the physical process.",
+      "url": "https://attack.mitre.org/techniques/T0826/"
+    },
+    {
+      "technique_id": "T0827",
+      "name": "Loss of Control",
+      "tactic": "Impact",
+      "description": "Adversaries may cause a loss of control over the physical process. The loss of control can prevent operators from interacting with the process and lead to an inability to respond to events.",
+      "url": "https://attack.mitre.org/techniques/T0827/"
+    },
+    {
+      "technique_id": "T0828",
+      "name": "Loss of Productivity and Revenue",
+      "tactic": "Impact",
+      "description": "Adversaries may cause loss of productivity and revenue through disruption of the industrial process.",
+      "url": "https://attack.mitre.org/techniques/T0828/"
+    },
+    {
+      "technique_id": "T0829",
+      "name": "Loss of View",
+      "tactic": "Impact",
+      "description": "Adversaries may cause a loss of view for operators of the process environment. The loss of view can prevent operators from seeing the current state of the physical process.",
+      "url": "https://attack.mitre.org/techniques/T0829/"
+    },
+    {
+      "technique_id": "T0835",
+      "name": "Manipulate I/O Image",
+      "tactic": "Inhibit Response Function",
+      "description": "Adversaries may manipulate the I/O image of PLCs through various means to prevent them from functioning as expected.",
+      "url": "https://attack.mitre.org/techniques/T0835/"
+    },
+    {
+      "technique_id": "T0814",
+      "name": "Denial of Service",
+      "tactic": "Inhibit Response Function",
+      "description": "Adversaries may perform denial of service attacks to disrupt expected device functionality.",
+      "url": "https://attack.mitre.org/techniques/T0814/"
+    }
+  ]
+}
