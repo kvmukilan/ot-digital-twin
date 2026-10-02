@@ -10,7 +10,8 @@ from __future__ import annotations
 import json
 import sqlite3
 import threading
-from datetime import datetime
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 from ot_twin.config import HISTORIAN_DB_PATH
@@ -29,8 +30,27 @@ class Historian:
     def _get_conn(self) -> sqlite3.Connection:
         return sqlite3.connect(self.db_path)
 
+    @contextmanager
+    def _connect(self) -> Iterator[sqlite3.Connection]:
+        """Yield a connection that is committed and then **closed**.
+
+        sqlite3's own ``with conn:`` context manager commits (or rolls back)
+        the transaction but does NOT close the connection. On Windows an
+        unclosed connection keeps a handle/lock on the database file, which
+        previously crashed ``demo`` (and leaked handles in every other command)
+        because ``TemporaryDirectory`` could not delete the open ``demo.db``.
+        Closing here fixes that for all historian operations.
+        """
+        with self._lock:
+            conn = self._get_conn()
+            try:
+                with conn:
+                    yield conn
+            finally:
+                conn.close()
+
     def _init_db(self) -> None:
-        with self._lock, self._get_conn() as conn:
+        with self._connect() as conn:
             conn.executescript("""
                 CREATE TABLE IF NOT EXISTS modbus_transactions (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -90,7 +110,7 @@ class Historian:
 
     def log_transaction(self, tx: ModbusTransaction) -> None:
         """Log a Modbus transaction."""
-        with self._lock, self._get_conn() as conn:
+        with self._connect() as conn:
             conn.execute(
                 """INSERT INTO modbus_transactions
                    (timestamp, source_ip, function_code, register_type,
@@ -112,7 +132,7 @@ class Historian:
 
     def log_process_snapshot(self, state: ProcessState) -> None:
         """Log a process state snapshot."""
-        with self._lock, self._get_conn() as conn:
+        with self._connect() as conn:
             conn.execute(
                 """INSERT INTO process_snapshots
                    (timestamp, tank_level, inflow_rate, outflow_rate,
@@ -148,7 +168,7 @@ class Historian:
         if result.end_time and result.start_time:
             duration = (result.end_time - result.start_time).total_seconds()
 
-        with self._lock, self._get_conn() as conn:
+        with self._connect() as conn:
             conn.execute(
                 """INSERT INTO attack_results
                    (timestamp, attack_name, success, details,
@@ -170,7 +190,7 @@ class Historian:
 
     def get_recent_transactions(self, limit: int = 50) -> list[dict]:
         """Retrieve the most recent Modbus transactions."""
-        with self._lock, self._get_conn() as conn:
+        with self._connect() as conn:
             conn.row_factory = sqlite3.Row
             rows = conn.execute(
                 "SELECT * FROM modbus_transactions ORDER BY id DESC LIMIT ?",
@@ -180,7 +200,7 @@ class Historian:
 
     def get_recent_snapshots(self, limit: int = 50) -> list[dict]:
         """Retrieve the most recent process snapshots."""
-        with self._lock, self._get_conn() as conn:
+        with self._connect() as conn:
             conn.row_factory = sqlite3.Row
             rows = conn.execute(
                 "SELECT * FROM process_snapshots ORDER BY id DESC LIMIT ?",
@@ -190,7 +210,7 @@ class Historian:
 
     def get_attack_history(self, limit: int = 20) -> list[dict]:
         """Retrieve the most recent attack results."""
-        with self._lock, self._get_conn() as conn:
+        with self._connect() as conn:
             conn.row_factory = sqlite3.Row
             rows = conn.execute(
                 "SELECT * FROM attack_results ORDER BY id DESC LIMIT ?",
@@ -200,7 +220,7 @@ class Historian:
 
     def get_transaction_count(self) -> int:
         """Total number of logged transactions."""
-        with self._lock, self._get_conn() as conn:
+        with self._connect() as conn:
             row = conn.execute(
                 "SELECT COUNT(*) FROM modbus_transactions"
             ).fetchone()
@@ -219,7 +239,7 @@ class Historian:
         if not db_table:
             raise ValueError(f"Unknown table: {table}. Use: {list(valid_tables)}")
 
-        with self._lock, self._get_conn() as conn:
+        with self._connect() as conn:
             conn.row_factory = sqlite3.Row
             rows = conn.execute(f"SELECT * FROM {db_table} ORDER BY id").fetchall()
 
@@ -237,7 +257,7 @@ class Historian:
 
     def clear(self) -> None:
         """Clear all historian data."""
-        with self._lock, self._get_conn() as conn:
+        with self._connect() as conn:
             conn.executescript("""
                 DELETE FROM modbus_transactions;
                 DELETE FROM process_snapshots;
