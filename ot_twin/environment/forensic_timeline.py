@@ -87,9 +87,7 @@ def _events_from_transactions(transactions: list[dict]) -> list[TimelineEvent]:
         elif is_write:
             # Writes to alarm/safety registers are higher severity
             severity = EventSeverity.MEDIUM
-            if addr in (9, 10):  # alarm threshold registers
-                severity = EventSeverity.HIGH
-            elif fc == 5:  # coil writes affect actuators
+            if addr in (9, 10) or fc == 5:  # alarm threshold registers
                 severity = EventSeverity.HIGH
 
             events.append(TimelineEvent(

@@ -1,10 +1,13 @@
 """
-Scapy-Crafted Attack — Low-level Modbus TCP packet crafting for advanced attacks.
+Raw-Socket Crafted Attack — Low-level Modbus TCP packet crafting.
 
-Demonstrates crafting raw Modbus TCP frames using Scapy, useful for:
+Hand-builds raw Modbus TCP frames with ``struct`` and sends them over a plain
+asyncio TCP socket (no Scapy dependency). Useful for:
 - Sending malformed packets
 - Bypassing application-layer filtering
 - Injecting custom function codes
+
+The registry/CLI name is kept as ``scapy_crafted`` for backward compatibility.
 
 MITRE ATT&CK for ICS:
   T0855 — Unauthorized Command Message
@@ -15,6 +18,7 @@ from __future__ import annotations
 
 import logging
 import struct
+from typing import ClassVar
 
 from ot_twin.attacks.base import BaseAttack
 from ot_twin.models import AttackResult, ModbusTransaction, RegisterType
@@ -64,11 +68,11 @@ def build_read_holding_registers_pdu(address: int, count: int) -> bytes:
 
 
 class ScapyCraftedAttack(BaseAttack):
-    """Send raw crafted Modbus TCP packets using sockets (Scapy-style)."""
+    """Send raw hand-crafted Modbus TCP packets over a plain socket (no Scapy)."""
 
     name = "scapy_crafted"
     description = "Low-level crafted Modbus TCP frames via raw sockets"
-    mitre_techniques = ["T0855", "T0830"]
+    mitre_techniques: ClassVar[list[str]] = ["T0855", "T0830"]
 
     def __init__(
         self,
@@ -89,7 +93,6 @@ class ScapyCraftedAttack(BaseAttack):
     async def execute(self) -> AttackResult:
         """Execute using pymodbus client but log as raw crafted frames."""
         import asyncio
-        import socket
 
         values_before: dict[int, int] = {}
         values_after: dict[int, int] = {}

@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 from ot_twin.environment.historian import Historian
-from ot_twin.environment.register_map import HOLDING_REGISTERS, get_register_map
+from ot_twin.environment.register_map import HOLDING_REGISTERS
 from ot_twin.models import RegisterType
 
 

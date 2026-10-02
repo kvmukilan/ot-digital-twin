@@ -13,7 +13,7 @@ from ot_twin.attacks.scapy_crafted import ScapyCraftedAttack
 from ot_twin.attacks.unauthorized_write import UnauthorizedWriteAttack
 from ot_twin.config import PLC_HOST, PLC_PORT
 from ot_twin.environment.historian import Historian
-from ot_twin.models import AttackScenario, AttackStep, RegisterType
+from ot_twin.models import AttackScenario, AttackStep
 
 logger = logging.getLogger(__name__)
 

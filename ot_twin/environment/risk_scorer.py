@@ -1,7 +1,7 @@
 """
 Process Risk Scorer — Quantifies operational risk from current process state.
 
-Produces a 0–100 score based on how far sensor values deviate from safe
+Produces a 0-100 score based on how far sensor values deviate from safe
 operating ranges, active alarms, and actuator state anomalies.  Useful for
 dashboards, incident triage, and automated alerting thresholds.
 """
@@ -24,7 +24,7 @@ class RiskFactor:
 @dataclass
 class RiskReport:
     """Full risk assessment for a process state snapshot."""
-    score: float                           # 0–100 (clamped)
+    score: float                           # 0-100 (clamped)
     level: str                             # low / medium / high / critical
     factors: list[RiskFactor] = field(default_factory=list)
 
@@ -65,7 +65,7 @@ _ACTUATOR_ANOMALY_POINTS = 5.0
 def score_risk(state: ProcessState) -> RiskReport:
     """Compute a risk score for the given process state.
 
-    Returns a RiskReport with score 0–100, a severity level, and a list of
+    Returns a RiskReport with score 0-100, a severity level, and a list of
     contributing risk factors.
     """
     factors: list[RiskFactor] = []

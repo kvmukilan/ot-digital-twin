@@ -27,7 +27,7 @@ class SessionProfile:
 
     @property
     def write_ratio(self) -> float:
-        """Fraction of transactions that are writes (0.0–1.0)."""
+        """Fraction of transactions that are writes (0.0-1.0)."""
         if self.total_transactions == 0:
             return 0.0
         return self.total_writes / self.total_transactions
