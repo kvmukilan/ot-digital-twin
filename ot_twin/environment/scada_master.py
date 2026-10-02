@@ -8,8 +8,8 @@ methods for sending control commands.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
-from datetime import datetime
 
 from pymodbus.client import AsyncModbusTcpClient
 
@@ -51,10 +51,8 @@ class SCADAMaster:
         self._running = False
         if self._poll_task:
             self._poll_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._poll_task
-            except asyncio.CancelledError:
-                pass
         self.client.close()
         logger.info("SCADA disconnected")
 

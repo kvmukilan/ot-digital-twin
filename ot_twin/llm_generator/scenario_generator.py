@@ -24,7 +24,7 @@ from ot_twin.llm_generator.mitre_mapping import (
     map_description_to_techniques,
 )
 from ot_twin.llm_generator.prompts import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
-from ot_twin.models import AttackScenario, AttackStep, MitreTechnique, RegisterType
+from ot_twin.models import AttackScenario, AttackStep, RegisterType
 
 logger = logging.getLogger(__name__)
 
@@ -250,7 +250,7 @@ def _generate_rule_based(description: str) -> AttackScenario:
         ))
         order += 1
 
-    elif any(kw in desc_lower for kw in ["stop", "shutdown", "disable", "dos"]):
+    elif any(kw in desc_lower for kw in ["stop", "shutdown", "shut down", "disable", "dos"]):
         steps.append(AttackStep(
             order=order,
             description="Activate emergency stop",

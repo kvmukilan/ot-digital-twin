@@ -43,6 +43,7 @@ KEYWORD_MAP: dict[str, list[str]] = {
     "denial": ["T0814", "T0826"],
     "dos": ["T0814", "T0826"],
     "shutdown": ["T0826", "T0827"],
+    "shut down": ["T0826", "T0827"],
     "stop": ["T0826", "T0827"],
     "alarm": ["T0880", "T0829"],
     "sensor": ["T0856", "T0835"],
