@@ -9,6 +9,7 @@ MITRE ATT&CK for ICS:
 from __future__ import annotations
 
 import logging
+from typing import ClassVar
 
 from ot_twin.attacks.base import BaseAttack
 from ot_twin.models import AttackResult, ModbusTransaction, RegisterType
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 class UnauthorizedWriteAttack(BaseAttack):
     name = "unauthorized_write"
     description = "Write arbitrary values to holding registers/coils without auth"
-    mitre_techniques = ["T0855", "T0836"]
+    mitre_techniques: ClassVar[list[str]] = ["T0855", "T0836"]
 
     def __init__(
         self,
@@ -34,8 +35,11 @@ class UnauthorizedWriteAttack(BaseAttack):
             target_coils: {address: value} for coil writes.
         """
         super().__init__(*args, **kwargs)
-        self.target_registers = target_registers or {}
-        self.target_coils = target_coils or {}
+        # Coerce keys to int: CLI params arrive as JSON whose object keys are
+        # always strings (e.g. -p 'target_registers={"0": 99}'), but Modbus
+        # addresses must be integers.
+        self.target_registers = {int(k): v for k, v in (target_registers or {}).items()}
+        self.target_coils = {int(k): bool(v) for k, v in (target_coils or {}).items()}
 
     async def execute(self) -> AttackResult:
         values_before: dict[int, int] = {}

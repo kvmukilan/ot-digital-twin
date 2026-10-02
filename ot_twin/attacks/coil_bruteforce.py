@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import ClassVar
 
 from ot_twin.attacks.base import BaseAttack
 from ot_twin.models import AttackResult, ModbusTransaction, RegisterType
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 class CoilBruteforceAttack(BaseAttack):
     name = "coil_bruteforce"
     description = "Toggle all coils to discover which control physical outputs"
-    mitre_techniques = ["T0855", "T0831"]
+    mitre_techniques: ClassVar[list[str]] = ["T0855", "T0831"]
 
     def __init__(
         self,

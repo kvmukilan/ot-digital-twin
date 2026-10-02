@@ -9,6 +9,7 @@ MITRE ATT&CK for ICS:
 from __future__ import annotations
 
 import logging
+from typing import ClassVar
 
 from ot_twin.attacks.base import BaseAttack
 from ot_twin.models import AttackResult, ModbusTransaction, RegisterType
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 class RegisterScanAttack(BaseAttack):
     name = "register_scan"
     description = "Enumerate holding/input registers to map PLC address space"
-    mitre_techniques = ["T0802", "T0861"]
+    mitre_techniques: ClassVar[list[str]] = ["T0802", "T0861"]
 
     def __init__(
         self,

@@ -9,10 +9,10 @@ Every attack follows the same lifecycle:
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import ClassVar
 
 from pymodbus.client import AsyncModbusTcpClient
 
@@ -28,7 +28,7 @@ class BaseAttack(ABC):
 
     name: str = "base_attack"
     description: str = "Base attack"
-    mitre_techniques: list[str] = []
+    mitre_techniques: ClassVar[list[str]] = []
 
     def __init__(
         self,
@@ -40,12 +40,18 @@ class BaseAttack(ABC):
         self.host = host
         self.port = port
         self.unit_id = unit_id
-        self.client = AsyncModbusTcpClient(host, port=port)
+        # The client is created lazily in connect() rather than here: pymodbus
+        # 3.x binds the client to the running event loop at construction time
+        # (asyncio.get_running_loop()), so building it in __init__ crashed when
+        # attacks are instantiated outside a loop — e.g. build_attacks_from_
+        # scenario() in the `generate --execute` and `scenarios --run` commands.
+        self.client: AsyncModbusTcpClient | None = None
         self.historian = historian
         self.transactions: list[ModbusTransaction] = []
 
     async def connect(self) -> bool:
         """Connect to the target PLC."""
+        self.client = AsyncModbusTcpClient(self.host, port=self.port)
         connected = await self.client.connect()
         if connected:
             logger.info("[%s] Connected to %s:%d", self.name, self.host, self.port)
@@ -55,7 +61,8 @@ class BaseAttack(ABC):
 
     async def cleanup(self) -> None:
         """Close the connection."""
-        self.client.close()
+        if self.client is not None:
+            self.client.close()
         logger.info("[%s] Connection closed", self.name)
 
     def _log_transaction(self, tx: ModbusTransaction) -> None:

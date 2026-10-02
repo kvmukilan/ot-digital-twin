@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+from typing import ClassVar
 
 from ot_twin.attacks.base import BaseAttack
 from ot_twin.environment.historian import Historian
@@ -27,7 +28,7 @@ class ReplayAttack(BaseAttack):
 
     name = "replay"
     description = "Replay captured Modbus writes to spoof or repeat prior commands"
-    mitre_techniques = ["T0856", "T0830"]
+    mitre_techniques: ClassVar[list[str]] = ["T0856", "T0830"]
 
     def __init__(
         self,

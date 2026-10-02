@@ -10,10 +10,11 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 dependencies = [
-    "pymodbus>=3.6,<4.0",
-    "langchain>=0.2,<1.0",
+    # 3.13 broke the classic datastore API the PLC slave uses (see requirements.txt)
+    "pymodbus>=3.11,<3.13",
+    # Only langchain-openai (+ its langchain-core dep) is imported; the heavier
+    # langchain / langchain-community meta-packages were unused and dropped.
     "langchain-openai>=0.1,<1.0",
-    "langchain-community>=0.2,<1.0",
     "openai>=1.0,<2.0",
     "click>=8.0,<9.0",
     "rich>=13.0,<14.0",
@@ -25,6 +26,7 @@ dependencies = [
 dev = [
     "pytest>=8.0,<9.0",
     "pytest-asyncio>=0.23,<1.0",
+    "ruff>=0.6,<1.0",
 ]
 
 [project.scripts]
@@ -36,3 +38,23 @@ asyncio_mode = "auto"
 
 [tool.setuptools.packages.find]
 include = ["ot_twin*"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+# Explicit rule set so CI lint stays reproducible across Ruff releases
+# (Ruff's implicit default selection changes between versions). We enable
+# pyflakes (F), the pycodestyle logic/syntax checks (E4/E7/E9), import
+# ordering (I), flake8-bugbear (B), pyupgrade (UP), flake8-simplify (SIM)
+# and Ruff's own rules (RUF). Line length (E501) is not enforced. BLE
+# (blind-except) and DTZ (naive datetimes) are deliberately excluded: the
+# LLM layer intentionally catches broad exceptions to fall back to offline
+# rule-based generation, and this self-contained simulator uses naive local
+# timestamps round-tripped through SQLite as ISO-8601 strings.
+select = ["E4", "E7", "E9", "F", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests may re-import and use fixtures freely.
+"tests/**" = ["B008"]

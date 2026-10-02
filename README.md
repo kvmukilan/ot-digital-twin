@@ -1,6 +1,25 @@
 # OT Digital Twin & LLM Attack Simulator
 
+[![CI](https://github.com/kvmukilan/ot-digital-twin/actions/workflows/ci.yml/badge.svg)](https://github.com/kvmukilan/ot-digital-twin/actions/workflows/ci.yml)
+
 A pure-Python Modbus TCP OT environment (PLC slave, SCADA master, historian) with a protocol-accurate attack library and LLM-powered attack scenario generator mapped to MITRE ATT&CK for ICS.
+
+## Quickstart
+
+No hardware and no API key required. The `demo` command spins up the PLC,
+runs the SCADA reads, executes the full attack library, generates a scenario
+and reports anomalies — all in one self-contained process:
+
+```bash
+git clone https://github.com/kvmukilan/ot-digital-twin.git
+cd ot-digital-twin
+python -m venv .venv
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
+pip install -e .
+
+# Run the end-to-end demo (starts a PLC, attacks it, analyses the traffic)
+python -m ot_twin demo
+```
 
 ## Architecture
 
@@ -47,7 +66,10 @@ A pure-Python Modbus TCP OT environment (PLC slave, SCADA master, historian) wit
 | `register_scan` | Enumerate holding/input registers to map PLC address space | T0802, T0861 |
 | `unauthorized_write` | Write arbitrary values to registers/coils without auth | T0855, T0836 |
 | `coil_bruteforce` | Toggle coils to discover active physical outputs | T0855, T0831 |
-| `raw_socket` | Raw Modbus TCP frame crafting via sockets | T0855, T0830 |
+| `scapy_crafted` | Hand-crafted raw Modbus TCP frames over a plain socket (`struct`-packed, no Scapy dependency) | T0855, T0830 |
+| `replay` | Replay previously captured Modbus writes to repeat/spoof prior commands | T0856, T0830 |
+
+> The `scapy_crafted` name is kept for CLI backward-compatibility; the implementation uses only the standard library (`struct` + `asyncio` sockets) and does **not** depend on Scapy.
 
 ## LLM Scenario Generator
 
@@ -135,18 +157,27 @@ python -m ot_twin.cli history --type attacks
 | 4 | Chlorine Pump | On |
 | 5 | Emergency Stop | Off |
 
+> Abridged for readability. For the complete map (holding registers 0-10, coils 0-7, input registers and discrete inputs) run `python -m ot_twin list-registers`.
+
 ## Testing
 
+The suite runs fully offline — no network and no LLM/OpenAI key. The LLM
+scenario generator is exercised with a mocked client, and the attack tests run
+against a real in-process PLC slave started on a random localhost port.
+
 ```bash
-# Run all tests
-python -m pytest tests/ -v
+# Install dev dependencies (pytest, pytest-asyncio, ruff)
+pip install -e ".[dev]"
 
-# Unit tests only
-python -m pytest tests/ -v --ignore=tests/test_integration.py
+# Run the whole suite
+python -m pytest -v
 
-# Integration tests (starts a real PLC server)
-python -m pytest tests/test_integration.py -v
+# Lint
+ruff check .
 ```
+
+CI (GitHub Actions) runs `ruff check .` and the full suite on Python 3.10, 3.11
+and 3.12.
 
 ## Tech Stack
 
@@ -185,7 +216,8 @@ ot-digital-twin/
 │       └── prompts.py                  # LLM prompt templates
 ├── data/
 │   └── mitre_ics_techniques.json       # MITRE technique database
-├── tests/                              # 180 tests (unit + integration)
+├── tests/                              # Offline pytest suite (physics, attacks, historian, MITRE, LLM-mocked)
+├── .github/workflows/ci.yml            # Lint + tests on Python 3.10/3.11/3.12
 ├── requirements.txt
 ├── .env.example
 └── .gitignore

@@ -14,6 +14,7 @@ Commands:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 import sys
@@ -336,10 +337,14 @@ def history(data_type: str, limit: int) -> None:
         table.add_column("Alarms", style="red")
         for r in records:
             alarms = []
-            if r.get("high_level_alarm"): alarms.append("HI-LVL")
-            if r.get("low_level_alarm"): alarms.append("LO-LVL")
-            if r.get("ph_alarm"): alarms.append("pH")
-            if r.get("pressure_alarm"): alarms.append("PSI")
+            if r.get("high_level_alarm"):
+                alarms.append("HI-LVL")
+            if r.get("low_level_alarm"):
+                alarms.append("LO-LVL")
+            if r.get("ph_alarm"):
+                alarms.append("pH")
+            if r.get("pressure_alarm"):
+                alarms.append("PSI")
             table.add_row(
                 r["timestamp"][:19],
                 f"{r['tank_level']:.1f}",
@@ -397,10 +402,14 @@ def status() -> None:
         table.add_row("Latest pH", f"{s['ph_level']:.2f}")
         table.add_row("Latest Pressure", f"{s['pressure_psi']:.1f} PSI")
         alarms = []
-        if s.get("high_level_alarm"): alarms.append("HIGH-LEVEL")
-        if s.get("low_level_alarm"): alarms.append("LOW-LEVEL")
-        if s.get("ph_alarm"): alarms.append("pH")
-        if s.get("pressure_alarm"): alarms.append("PRESSURE")
+        if s.get("high_level_alarm"):
+            alarms.append("HIGH-LEVEL")
+        if s.get("low_level_alarm"):
+            alarms.append("LOW-LEVEL")
+        if s.get("ph_alarm"):
+            alarms.append("pH")
+        if s.get("pressure_alarm"):
+            alarms.append("PRESSURE")
         table.add_row("Active Alarms", ", ".join(alarms) if alarms else "None")
         table.add_row("Snapshot Time", s["timestamp"][:19])
     else:
@@ -853,7 +862,7 @@ def scenarios(run_name: str | None, host: str, port: int) -> None:
         for item in items:
             table.add_row(item["name"], item["objective"], item["steps"], item["mitre"])
         console.print(table)
-        console.print(f"\nRun a scenario: [bold]ot-twin scenarios --run <name>[/]")
+        console.print("\nRun a scenario: [bold]ot-twin scenarios --run <name>[/]")
         return
 
     scenario = get_scenario(run_name)
@@ -1053,8 +1062,23 @@ def demo(port: int) -> None:
         console.print("\n[yellow]Demo cancelled[/]")
 
 
+def _ensure_utf8_output() -> None:
+    """Force UTF-8 stdio so Rich output never crashes on a legacy codepage.
+
+    On Windows consoles with a non-UTF-8 active codepage (e.g. cp1252),
+    printing the Unicode glyphs used in reports (>=, box-drawing, arrows,
+    subscripts) raised ``UnicodeEncodeError`` and aborted commands such as
+    ``compliance``, ``traffic``, ``risk`` and ``sessions``. Reconfiguring to
+    UTF-8 with error replacement makes every command safe on all platforms.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        with contextlib.suppress(AttributeError, ValueError):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
+
 def main() -> None:
     """Entry point."""
+    _ensure_utf8_output()
     cli()
 
 

@@ -9,6 +9,7 @@ holding registers and coils are writable by SCADA (or attackers).
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 from typing import Any
 
@@ -107,16 +108,12 @@ class PLCSlave:
         self._running = False
         if self._sim_task:
             self._sim_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._sim_task
-            except asyncio.CancelledError:
-                pass
         if self._server_task:
             self._server_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._server_task
-            except asyncio.CancelledError:
-                pass
         logger.info("PLC Slave stopped")
 
     def _read_coil(self, address: int) -> bool:
