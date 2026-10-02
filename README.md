@@ -4,6 +4,23 @@
 
 A pure-Python Modbus TCP OT environment (PLC slave, SCADA master, historian) with a protocol-accurate attack library and LLM-powered attack scenario generator mapped to MITRE ATT&CK for ICS.
 
+## Quickstart
+
+No hardware and no API key required. The `demo` command spins up the PLC,
+runs the SCADA reads, executes the full attack library, generates a scenario
+and reports anomalies — all in one self-contained process:
+
+```bash
+git clone https://github.com/kvmukilan/ot-digital-twin.git
+cd ot-digital-twin
+python -m venv .venv
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
+pip install -e .
+
+# Run the end-to-end demo (starts a PLC, attacks it, analyses the traffic)
+python -m ot_twin demo
+```
+
 ## Architecture
 
 ```
