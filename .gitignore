@@ -18,4 +18,3 @@ data/historian.db
 .ruff_cache/
 *.log
 .DS_Store
-tests/

@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 dependencies = [
-    "pymodbus>=3.6,<4.0",
+    "pymodbus>=3.10,<3.12",
     "langchain>=0.2,<1.0",
     "langchain-openai>=0.1,<1.0",
     "langchain-community>=0.2,<1.0",
@@ -36,3 +36,6 @@ asyncio_mode = "auto"
 
 [tool.setuptools.packages.find]
 include = ["ot_twin*"]
+
+[tool.setuptools.package-data]
+ot_twin = ["data/*.json"]

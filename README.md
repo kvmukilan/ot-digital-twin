@@ -190,3 +190,7 @@ ot-digital-twin/
 ├── .env.example
 └── .gitignore
 ```
+
+## Deployment readiness
+
+See [deployment setup, checks, and rollback](docs/production.md).
