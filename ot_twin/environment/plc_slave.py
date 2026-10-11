@@ -17,7 +17,7 @@ from pymodbus.datastore import (
     ModbusSequentialDataBlock,
     ModbusServerContext,
 )
-from pymodbus.server import StartAsyncTcpServer
+from pymodbus.server import ModbusTcpServer
 
 from ot_twin.config import PLC_HOST, PLC_PORT, PLC_UNIT_ID, PROCESS_TICK_SECONDS
 from ot_twin.environment.process_model import WaterTreatmentProcess
@@ -45,8 +45,8 @@ def _build_data_block(
         for entry in entries:
             if entry.address < size:
                 values[entry.address] = int(entry.default_value)
-    # pymodbus uses 1-based addressing internally; address=0 -> offset 0
-    return ModbusSequentialDataBlock(0, values)
+    # DeviceContext adds one to protocol addresses before accessing a block.
+    return ModbusSequentialDataBlock(1, values)
 
 
 class PLCSlave:
@@ -61,7 +61,7 @@ class PLCSlave:
         self.port = port
         self.process = WaterTreatmentProcess()
         self._running = False
-        self._server_task: asyncio.Task | None = None
+        self._server: ModbusTcpServer | None = None
         self._sim_task: asyncio.Task | None = None
 
         # Build data store
@@ -77,30 +77,30 @@ class PLCSlave:
 
     async def start(self) -> None:
         """Start the PLC server and simulation loop."""
-        self._running = True
-        logger.info("PLC Slave starting on %s:%d", self.host, self.port)
-
-        self._sim_task = asyncio.create_task(self._simulation_loop())
-
-        await StartAsyncTcpServer(
-            context=self.server_context,
-            address=(self.host, self.port),
-        )
+        try:
+            await self.start_background()
+            assert self._server is not None
+            await self._server.serving
+        finally:
+            await self.stop()
 
     async def start_background(self) -> None:
         """Start PLC in the background, returning once the server is listening."""
-        self._running = True
-        logger.info("PLC Slave starting (background) on %s:%d", self.host, self.port)
-
-        self._sim_task = asyncio.create_task(self._simulation_loop())
-        self._server_task = asyncio.create_task(
-            StartAsyncTcpServer(
-                context=self.server_context,
-                address=(self.host, self.port),
-            )
+        if self._running:
+            raise RuntimeError("PLC server is already running")
+        self._server = ModbusTcpServer(
+            context=self.server_context, address=(self.host, self.port)
         )
-        # Give the server a moment to bind
-        await asyncio.sleep(0.5)
+        try:
+            # This returns only after listen succeeds; bind errors reach the caller.
+            await self._server.serve_forever(background=True)
+        except Exception:
+            await self._server.shutdown()
+            self._server = None
+            raise
+        self.port = self._server.transport.sockets[0].getsockname()[1]
+        self._running = True
+        self._sim_task = asyncio.create_task(self._simulation_loop())
 
     async def stop(self) -> None:
         """Stop the server and simulation."""
@@ -111,12 +111,10 @@ class PLCSlave:
                 await self._sim_task
             except asyncio.CancelledError:
                 pass
-        if self._server_task:
-            self._server_task.cancel()
-            try:
-                await self._server_task
-            except asyncio.CancelledError:
-                pass
+            self._sim_task = None
+        if self._server:
+            await self._server.shutdown()
+            self._server = None
         logger.info("PLC Slave stopped")
 
     def _read_coil(self, address: int) -> bool:

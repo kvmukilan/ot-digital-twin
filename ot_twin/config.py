@@ -11,8 +11,8 @@ load_dotenv()
 
 # Paths
 PROJECT_ROOT = Path(__file__).parent.parent
-DATA_DIR = PROJECT_ROOT / "data"
-DATA_DIR.mkdir(exist_ok=True)
+DATA_DIR = Path(os.getenv("OT_TWIN_DATA_DIR", str(Path.cwd() / "data"))).expanduser()
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # PLC / Modbus Server
 PLC_HOST: str = os.getenv("PLC_HOST", "127.0.0.1")
@@ -49,4 +49,6 @@ OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
 OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4")
 
 # MITRE data
-MITRE_ICS_DATA_PATH: str = str(DATA_DIR / "mitre_ics_techniques.json")
+MITRE_ICS_DATA_PATH: str = os.getenv(
+    "MITRE_ICS_DATA_PATH", str(Path(__file__).parent / "data" / "mitre_ics_techniques.json")
+)
